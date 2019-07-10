@@ -8,42 +8,41 @@ func MergeSort(src []int64) {
 		return
 	}
 
+	// 开辟一个与原来数组一样大小的空间用来存储用
 	temp := make([]int64, n)
-
 	for i := 1; i < n; i *= 2 {
-		var a, b, c, d int
-
-		for a = 0; a < n-i; a = d {
-			b = a + i
-			c = b
-			d = b + i
-			if d > n {
-				d = n
+		for left, right := 0, 0; left < n-i; left = right {
+			mid := left + i
+			right = mid + i
+			if right > n {
+				right = n
 			}
 
-			next := 0
-			for a < b && c < d {
-				if src[a] < src[c] {
-					temp[next] = src[a]
-					a++
-				} else {
-					temp[next] = src[c]
-					c++
-				}
-				next++
-			}
-
-			for a < b {
-				c--
-				b--
-				src[c] = src[b]
-			}
-
-			for next > 0 {
-				c--
-				next--
-				src[c] = temp[next]
-			}
+			merge(src, temp[left:right], left, mid, mid, right)
 		}
 	}
+}
+
+func merge(src, section []int64, a, b, c, d int) {
+	next := 0
+	for a < b && c < d {
+		if src[a] < src[c] {
+			section[next] = src[a]
+			a++
+		} else {
+			section[next] = src[c]
+			c++
+		}
+		next++
+	}
+
+	//上面循环结束的条件有两个，如果是左边的游标尚未到达，那么需要把
+	//数组接回去，可能会有疑问，那如果右边的没到达呢，其实模拟一下就可以
+	//知道，如果右边没到达，那么说明右边的数据比较大，这时也就不用移动位置了
+	if b-a > 0 {
+		e := c - (b - a)
+		copy(src[e:c], src[a:b])
+		c = e
+	}
+	copy(src[c-next:c], section[:next])
 }
