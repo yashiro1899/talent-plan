@@ -1,5 +1,10 @@
 package main
 
+import (
+	"runtime"
+	"sync"
+)
+
 // MergeSort performs the merge sort algorithm.
 // Please supplement this function to accomplish the home work.
 func MergeSort(src []int64) {
@@ -11,6 +16,7 @@ func MergeSort(src []int64) {
 	// 开辟一个与原来数组一样大小的空间用来存储用
 	temp := make([]int64, n)
 	for i := 1; i < n; i *= 2 {
+		var wg sync.WaitGroup
 		for left, right := 0, 0; left < n-i; left = right {
 			mid := left + i
 			right = mid + i
@@ -18,12 +24,18 @@ func MergeSort(src []int64) {
 				right = n
 			}
 
-			merge(src, temp[left:right], left, mid, mid, right)
+			if i >= runtime.NumCPU()*4 {
+				wg.Add(1)
+				go merge(src, temp[left:right], left, mid, mid, right, &wg)
+			} else {
+				merge(src, temp[left:right], left, mid, mid, right, nil)
+			}
 		}
+		wg.Wait()
 	}
 }
 
-func merge(src, section []int64, a, b, c, d int) {
+func merge(src, section []int64, a, b, c, d int, wg *sync.WaitGroup) {
 	next := 0
 	for a < b && c < d {
 		if src[a] < src[c] {
@@ -45,4 +57,8 @@ func merge(src, section []int64, a, b, c, d int) {
 		c = e
 	}
 	copy(src[c-next:c], section[:next])
+
+	if wg != nil {
+		wg.Done()
+	}
 }
