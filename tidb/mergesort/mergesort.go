@@ -5,6 +5,12 @@ import (
 	"sync"
 )
 
+var tokens chan struct{}
+
+func init() {
+	tokens = make(chan struct{}, runtime.NumCPU()*16)
+}
+
 // MergeSort performs the merge sort algorithm.
 // Please supplement this function to accomplish the home work.
 func MergeSort(src []int64) {
@@ -25,6 +31,7 @@ func MergeSort(src []int64) {
 			}
 
 			if i >= runtime.NumCPU()*4 {
+				tokens <- struct{}{} // acquire a token
 				wg.Add(1)
 				go merge(src, temp[left:right], left, mid, mid, right, &wg)
 			} else {
@@ -59,6 +66,7 @@ func merge(src, section []int64, a, b, c, d int, wg *sync.WaitGroup) {
 	copy(src[c-next:c], section[:next])
 
 	if wg != nil {
+		<-tokens // release the token
 		wg.Done()
 	}
 }
