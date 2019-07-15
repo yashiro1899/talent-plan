@@ -19,9 +19,11 @@ func MergeSort(src []int64) {
 		return
 	}
 
+	sort64(src)
+
 	// 开辟一个与原来数组一样大小的空间用来存储用
 	temp := make([]int64, n)
-	for i := 1; i < n; i *= 2 {
+	for i := 64; i < n; i *= 2 {
 		var wg sync.WaitGroup
 		for left, right := 0, 0; left < n-i; left = right {
 			mid := left + i
@@ -30,15 +32,29 @@ func MergeSort(src []int64) {
 				right = n
 			}
 
-			if i >= runtime.NumCPU()*4 {
-				tokens <- struct{}{} // acquire a token
-				wg.Add(1)
-				go merge(src, temp[left:right], left, mid, mid, right, &wg)
-			} else {
-				merge(src, temp[left:right], left, mid, mid, right, nil)
-			}
+			tokens <- struct{}{} // acquire a token
+			wg.Add(1)
+			go merge(src, temp[left:right], left, mid, mid, right, &wg)
 		}
 		wg.Wait()
+	}
+}
+
+func sort64(src []int64) {
+	n := len(src)
+	for start := 0; start < n; start += 64 {
+		end := start + 64
+		if end > n {
+			end = n
+		}
+
+		// expect := src[start:end]
+		// sort.Slice(expect, func(i, j int) bool { return expect[i] < expect[j] })
+		for i := start + 1; i < end; i++ {
+			for j := i; j > start && src[j] < src[j-1]; j-- {
+				src[j], src[j-1] = src[j-1], src[j]
+			}
+		}
 	}
 }
 
@@ -65,8 +81,6 @@ func merge(src, section []int64, a, b, c, d int, wg *sync.WaitGroup) {
 	}
 	copy(src[c-next:c], section[:next])
 
-	if wg != nil {
-		<-tokens // release the token
-		wg.Done()
-	}
+	<-tokens // release the token
+	wg.Done()
 }
