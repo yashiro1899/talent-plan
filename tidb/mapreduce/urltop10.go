@@ -2,8 +2,16 @@ package main
 
 // URLTop10 .
 func URLTop10(nWorkers int) RoundsArgs {
-	// YOUR CODE HERE :)
-	// And don't forget to document your idea.
-	panic("YOUR CODE HERE")
-	return nil
+}
+
+func URLCountMap(filename string, contents string) []KeyValue {
+}
+
+func URLCountReduce(key string, values []string) string {
+}
+
+func URLTop10Map(filename string, contents string) []KeyValue {
+}
+
+func URLTop10Reduce(key string, values []string) string {
 }

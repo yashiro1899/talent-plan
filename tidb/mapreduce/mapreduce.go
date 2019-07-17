@@ -108,8 +108,6 @@ func (c *MRCluster) worker() {
 					SafeClose(fs[i], bs[i])
 				}
 			} else {
-				// YOUR CODE HERE :)
-				panic("YOUR CODE HERE")
 			}
 			t.wg.Done()
 		case <-c.exit:
@@ -155,8 +153,6 @@ func (c *MRCluster) run(jobName, dataDir string, mapF MapF, reduceF ReduceF, map
 	}
 
 	// reduce phase
-	// YOUR CODE HERE :D
-	panic("YOUR CODE HERE")
 }
 
 func ihash(s string) int {

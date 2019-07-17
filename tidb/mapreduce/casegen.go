@@ -49,6 +49,7 @@ func genUniformCases() []CaseGenF {
 	cardinalities := []int{1, 7, 200, 10000, 1000000}
 	gs := make([]CaseGenF, 0, len(cardinalities))
 	for _, card := range cardinalities {
+		card := card
 		gs = append(gs, func(dataFileDir string, totalDataSize, nMapFiles int) Case {
 			if FileOrDirExist(dataFileDir) {
 				files := make([]string, 0, nMapFiles)
@@ -102,6 +103,7 @@ func genPercentCases() []CaseGenF {
 	}
 	gs := make([]CaseGenF, 0, len(ps))
 	for _, p := range ps {
+		p := p
 		gs = append(gs, func(dataFileDir string, totalDataSize, nMapFiles int) Case {
 			if FileOrDirExist(dataFileDir) {
 				files := make([]string, 0, nMapFiles)
