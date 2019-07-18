@@ -108,6 +108,30 @@ func (c *MRCluster) worker() {
 					SafeClose(fs[i], bs[i])
 				}
 			} else {
+				m := make(map[string][]string)
+				for i := 0; i < t.nMap; i++ {
+					rpath := reduceName(t.dataDir, t.jobName, i, t.taskNumber)
+					file, buf := OpenFileAndBuf(rpath)
+					dec := json.NewDecoder(buf)
+
+					for {
+						var line KeyValue
+						if err := dec.Decode(&line); err != nil {
+							break
+						}
+						m[line.Key] = append(m[line.Key], line.Value)
+					}
+
+					file.Close()
+				}
+
+				mpath := mergeName(t.dataDir, t.jobName, t.taskNumber)
+				file, buf := CreateFileAndBuf(mpath)
+				for k, v := range m {
+					buf.WriteString(t.reduceF(k, v))
+				}
+
+				SafeClose(file, buf)
 			}
 			t.wg.Done()
 		case <-c.exit:
@@ -153,6 +177,30 @@ func (c *MRCluster) run(jobName, dataDir string, mapF MapF, reduceF ReduceF, map
 	}
 
 	// reduce phase
+	tasks = make([]*task, nReduce)
+	for i := range tasks {
+		t := &task{
+			dataDir:    dataDir,
+			jobName:    jobName,
+			phase:      reducePhase,
+			taskNumber: i,
+			nReduce:    nReduce,
+			nMap:       nMap,
+			reduceF:    reduceF,
+		}
+		t.wg.Add(1)
+		tasks[i] = t
+		go func() { c.taskCh <- t }()
+	}
+	for _, t := range tasks {
+		t.wg.Wait()
+	}
+
+	mfiles := make([]string, nReduce)
+	for i := range mfiles {
+		mfiles[i] = mergeName(dataDir, jobName, i)
+	}
+	notify <- mfiles
 }
 
 func ihash(s string) int {
