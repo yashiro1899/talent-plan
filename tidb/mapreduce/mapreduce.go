@@ -128,7 +128,7 @@ func (c *MRCluster) worker() {
 				mpath := mergeName(t.dataDir, t.jobName, t.taskNumber)
 				file, buf := CreateFileAndBuf(mpath)
 				for k, v := range m {
-					buf.WriteString(t.reduceF(k, v))
+					WriteToBuf(buf, t.reduceF(k, v))
 				}
 
 				SafeClose(file, buf)
