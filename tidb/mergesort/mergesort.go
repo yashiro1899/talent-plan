@@ -8,7 +8,7 @@ import (
 var tokens chan struct{}
 
 func init() {
-	tokens = make(chan struct{}, runtime.NumCPU()*16)
+	tokens = make(chan struct{}, runtime.NumCPU()*2)
 }
 
 // MergeSort performs the merge sort algorithm.
